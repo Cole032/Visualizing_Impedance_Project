@@ -1,0 +1,49 @@
+\section{Introduction and Mathematical Theory}
+In acoustic engineering many porous materials used do not have controlled pore properties. This research uses a 3D printer to control the pore geometries of porous media, and then the intrinsic properties of the medium are determined. A relationship between the pore properties and characteristic impedance would allow for the creation of materials that more effectively impede specific frequencies of sound. The transfer function method is used for this analysis \cite{utsuno1989}. The complex transfer function $H_{MC}$ is the microphone corrected transfer function which is defined as the ratio of the acoustic pressure measured at two microphone positions. The details for acquiring the corrected transfer function described in section \ref{sec:Mic_correction}.
+\begin{equation}
+    H_{MC} = \frac{P_{top}}{P_{bottom}}
+    \label{eq: microphone corrected transfer function}
+\end{equation}
+From this transfer function, the surface impedance $Z_s$ at the front face of the material is calculated. This relates the incident wave to the sample's resistance to the air particle velocity:
+\begin{equation}
+    Z_s = j \rho c \frac{\sin(k(l-s)) - H_{MC} \sin(kl)}{H_{MC} \cos(kl) - \cos(k(l-s))}
+\end{equation}
+where $k$ is the wavenumber in air, $l$ is the distance from the first microphone to the sample, and $s$ is the spacing between microphones. Because the sample is backed by a rigid-walled air cavity of depth $D$, we must account for the backing impedance $Z_b$, which is given by:
+\begin{equation}
+    Z_b = -j Z_{air} \cot(k_{} D)
+\end{equation}
+To isolate the intrinsic properties from the system effects, the "Two-Cavity Method" is employed. A second set of measurements is taken using a different air backing space, and all variables associated with this second configuration are denoted with a prime ($'$). This allows for the calculation of the characteristic impedance $Z_c$:
+\begin{equation}
+    Z_c = \sqrt{\frac{Z_s Z_s' (Z_b - Z_b') - Z_b Z_b' (Z_s - Z_s')}{Z_s - Z_s' - (Z_b - Z_b')}}.
+    \label{char_impedance}
+\end{equation}
+The characteristic impedance ($Z_c$) physically represents the amount of energy that is reflected off of the surface of the medium. The propagation constant $\gamma$ can also be calculated with these values:
+\begin{equation}
+    \gamma = \frac{1}{2L} \ln \left( \frac{Z_s + Z_c}{Z_s - Z_c} \cdot \frac{Z_b - Z_c}{Z_b + Z_c} \right)
+    \label{prop_constant}
+\end{equation}
+The propagation constant ($\gamma$) physically represents the exponential loss of pressure within the medium. These equations are outlined by Utsuno et al. \cite{utsuno1989} which provides the framework for $Z_c$ and $\gamma$.
+
+\subsection{Derivation of Internal Wave Coefficients}
+\label{sec: Internal Wave Equations}
+Following the mathematics of Hou and Bolton \cite{hou2009transfer} for plane waves in a standing wave tube, we can apply the boundary conditions of continuity for pressure and particle velocity. Their math can be used to solve for the internal forward and backward traveling wave coefficients ($A$ and $B$) inside the porous medium.
+
+Inside the material, the pressure $P_m(x)$ and particle velocity $V_m(x)$ are governed by the material's intrinsic properties, $Z_c$ and $\gamma$, and can be expressed as:
+\begin{equation}
+    P_m(x) = A e^{-\gamma x} + B e^{\gamma x}
+\end{equation}
+\begin{equation}
+    V_m(x) = \frac{A}{Z_c} e^{-\gamma x} - \frac{B}{Z_c} e^{\gamma x}
+\end{equation}
+At the front interface of the sample ($x=0$), let $P_0$ and $V_0$ represent the known total pressure and velocity. Evaluating the internal equations at $x=0$ yields a system of two equations:
+\begin{align}
+    P_0 &= A + B \\
+    V_0 &= \frac{A - B}{Z_c}
+\end{align}
+Multiplying the velocity equation by $Z_c$ gives $A - B = Z_c V_0$. This system of equations can be solved for the coefficients A and B:
+\begin{align}
+    \label{eq: coefficients for code}
+    A &= \frac{1}{2}(P_0 + Z_c V_0) \\
+    B &= \frac{1}{2}(P_0 - Z_c V_0)
+\end{align}
+
