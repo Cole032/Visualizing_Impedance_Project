@@ -19,7 +19,8 @@ Z_air = rho_air * c_air
 
 L = 0.090  # Sample thickness (m)
 D = 0.010  # Air gap depth (m)
-mic1_x, mic2_x = -0.15, -0.05 
+mic1_x= -0.15
+mic2_x= -0.05
 
 x_front = np.linspace(-0.5, 0, 300)
 x_mat   = np.linspace(0, L, 200)
@@ -27,11 +28,12 @@ x_back  = np.linspace(L, L + D, 200)
 
 fig, ax = plt.subplots(figsize=(12, 6))
 
-# Animated Wave Lines
+# Creating the empty plot lines that are used later once we define the animate function
 line_front, = ax.plot([], [], 'b-', lw=2, label='Front Tube (Air)')
-line_mat,   = ax.plot([], [], 'r-', lw=2.5, label='Porous Sample')
-line_back,  = ax.plot([], [], 'b-', lw=2, label='Back Cavity (Air Gap)')
 
+line_mat,   = ax.plot([], [], 'r-', lw=2.5, label='Porous Sample')
+
+line_back,  = ax.plot([], [], 'b-', lw=2, label='Back Cavity (Air Gap)')
 # Envelope Lines in each region
 env_f_up, = ax.plot([], [], 'k--', alpha=0.2)
 env_f_dn, = ax.plot([], [], 'k--', alpha=0.2)
@@ -41,12 +43,11 @@ env_b_up, = ax.plot([], [], 'k--', alpha=0.2)
 env_b_dn, = ax.plot([], [], 'k--', alpha=0.2)
 
 # Making sure the boundaries of each part of my impedance tube are clear
-ax.axvspan(0, L, color='red', alpha=0.1)
-
+ax.axvspan(0, L, color='red', alpha=0.1) # Surface of the material starts at 0, so the entire medium will be zero to L
 ax.axvspan(L, L + D, color='blue', alpha=0.05)
 ax.axvline(0, color='black', lw=2)
 ax.axvline(L, color='black', linestyle='-.', lw=1.5)
-
+# Creating the far boundaries
 ax.axvline(L + D, color='black', lw=4, label='Rigid Backing')
 ax.plot([mic1_x, mic2_x], [0, 0], 'ko', markersize=6, label='Mics')
 
@@ -57,40 +58,38 @@ ax.set_ylabel("Acoustic Pressure")
 ax.grid(True, alpha=0.3)
 ax.legend(loc='lower left', fontsize=9)
 
-title_text = ax.text(-0.48, 2.7, '', fontsize=10, family='monospace', 
-                     bbox=dict(facecolor='white', alpha=0.8, edgecolor='none'))
-
+title_text = ax.text(-0.50, 2.80, '', fontsize=10, bbox=dict(facecolor='white', alpha=0.8, edgecolor='black'))
 current_time = 0.0
 dt = 0.0001
-frames_per_freq = 90 # If this is changed it changes how long the animation stays on one frequency
+frames_per_freq = 90 
 n_points = len(df)
 
 def animate(frame):
     if frame % 10 == 0:
         print("At frame: " + str(frame))
-    global current_time
-    idx = (frame // frames_per_freq) % n_points
+    idx = (frame//frames_per_freq) % n_points # only changes index on integer devision for example 90/90=1 180/90=2
     row = df.iloc[idx]
-    
-    f     = row[0]
-    Zc    = row[1] + 1j * row[2]
+    global current_time # Have to make time a global variable because it would restart at time 0 and the wave doesn't looks smooth
+    f = row[0]
+    Zc = row[1] + 1j * row[2]
     gamma = row[3] + 1j * row[4]
-    
-    
     omega = 2 * np.pi * f
-    k_air = omega / c_air
+    k_air = (2*np.pi*f) / c_air
     current_time += dt 
     
     # Utsuno Math
-    Z_back = -1j * Z_air / np.tan(k_air * D)
-    term = np.tanh(gamma * L)
-    Z_front = Zc * (Z_back + Zc * term) / (Zc + Z_back * term)
-    R = (Z_front - Z_air) / (Z_front + Z_air)
-    P_0, V_0 = 1 + R, (1 - R) / Z_air
-    A2, B2 = 0.5 * (P_0 + Zc * V_0), 0.5 * (P_0 - Zc * V_0)
-    P_L = A2 * np.exp(-gamma * L) + B2 * np.exp(gamma * L)
-    V_L = (A2 * np.exp(-gamma * L) - B2 * np.exp(gamma * L)) / Zc
-    A3, B3 = 0.5 * (P_L + Z_air * V_L), 0.5 * (P_L - Z_air * V_L)
+    Z_back = -1j * Z_air/np.tan(k_air*D)
+    term = np.tanh(gamma*L)
+    Z_front = Zc * (Z_back+Zc*term)/(Zc+Z_back*term)
+    R = (Z_front - Z_air)/(Z_front+Z_air)
+    P_0 = 1 + R
+    V_0 = (1 - R)/Z_air
+    A2 = 0.5*(P_0+Zc*V_0)
+    B2 = 0.5*(P_0-Zc*V_0)
+    P_L = A2*np.exp(-gamma*L)+B2*np.exp(gamma*L)
+    V_L = (A2*np.exp(-gamma*L)-B2*np.exp(gamma*L))/Zc
+    A3 = 0.5*(P_L+Z_air*V_L)
+    B3 = 0.5*(P_L-Z_air*V_L)
 
    # These are the pressure fields described by the boundary conditions
     P_f = np.exp(-1j * k_air * x_front) + R * np.exp(1j * k_air * x_front)
@@ -98,7 +97,7 @@ def animate(frame):
     P_b = A3 * np.exp(-1j * k_air * (x_back - L)) + B3 * np.exp(1j * k_air * (x_back - L))
    #Updates envelope for in from of the medium
     env_f_up.set_data(x_front, np.abs(P_f))
-    env_f_dn.set_data(x_front, -np.abs(P_f))
+    env_f_dn.set_data(x_front, -np.abs(P_f)) 
    #Update envelope inside the material
     env_m_up.set_data(x_mat, np.abs(P_m))
     env_m_dn.set_data(x_mat, -np.abs(P_m))
@@ -111,14 +110,12 @@ def animate(frame):
     line_front.set_data(x_front, np.real(P_f * t_f))
     line_mat.set_data(x_mat, np.real(P_m * t_f))
     line_back.set_data(x_back, np.real(P_b * t_f))
-    
     title_text.set_text(f"FREQ: {f:7.1f} Hz\n"
                         f"Zc:   {Zc.real:7.1f} + {Zc.imag:7.1f}j\n"
                         f"Gam:  {gamma.real:7.2f} + {gamma.imag:7.2f}j")
-
     return (line_front, line_mat, line_back, env_f_up, env_f_dn, 
             env_m_up, env_m_dn, env_b_up, env_b_dn, title_text)
 
-ani = animation.FuncAnimation(fig, animate, frames = frames_per_freq*n_points, interval=30, blit=True) # if you want the whole thing do this frames_per_freq*n_points
+ani = animation.FuncAnimation(fig, animate, frames = frames_per_freq*n_points, interval=30, blit=True) # By changing number of frames you can control how many frequency values you see
 #ani.save(save_path, writer='pillow', fps=30)
 plt.show()
