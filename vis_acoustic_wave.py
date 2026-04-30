@@ -30,7 +30,7 @@ fig, ax = plt.subplots(figsize=(12, 6))
 # Animated Wave Lines
 line_front, = ax.plot([], [], 'b-', lw=2, label='Front Tube (Air)')
 line_mat,   = ax.plot([], [], 'r-', lw=2.5, label='Porous Sample')
-line_back,  = ax.plot([], [], 'g-', lw=2, label='Back Cavity (Air Gap)')
+line_back,  = ax.plot([], [], 'b-', lw=2, label='Back Cavity (Air Gap)')
 
 # Envelope Lines in each region
 env_f_up, = ax.plot([], [], 'k--', alpha=0.2)
@@ -43,7 +43,7 @@ env_b_dn, = ax.plot([], [], 'k--', alpha=0.2)
 # Making sure the boundaries of each part of my impedance tube are clear
 ax.axvspan(0, L, color='red', alpha=0.1)
 
-ax.axvspan(L, L + D, color='green', alpha=0.05)
+ax.axvspan(L, L + D, color='blue', alpha=0.05)
 ax.axvline(0, color='black', lw=2)
 ax.axvline(L, color='black', linestyle='-.', lw=1.5)
 
@@ -86,21 +86,20 @@ def animate(frame):
     term = np.tanh(gamma * L)
     Z_front = Zc * (Z_back + Zc * term) / (Zc + Z_back * term)
     R = (Z_front - Z_air) / (Z_front + Z_air)
-
     P_0, V_0 = 1 + R, (1 - R) / Z_air
     A2, B2 = 0.5 * (P_0 + Zc * V_0), 0.5 * (P_0 - Zc * V_0)
     P_L = A2 * np.exp(-gamma * L) + B2 * np.exp(gamma * L)
     V_L = (A2 * np.exp(-gamma * L) - B2 * np.exp(gamma * L)) / Zc
     A3, B3 = 0.5 * (P_L + Z_air * V_L), 0.5 * (P_L - Z_air * V_L)
 
-    # These are the pressure fields described by the boundary conditions
+   # These are the pressure fields described by the boundary conditions
     P_f = np.exp(-1j * k_air * x_front) + R * np.exp(1j * k_air * x_front)
     P_m = A2 * np.exp(-gamma * x_mat) + B2 * np.exp(gamma * x_mat)
     P_b = A3 * np.exp(-1j * k_air * (x_back - L)) + B3 * np.exp(1j * k_air * (x_back - L))
    #Updates envelope for in from of the medium
     env_f_up.set_data(x_front, np.abs(P_f))
     env_f_dn.set_data(x_front, -np.abs(P_f))
-    #Update envelope inside the material
+   #Update envelope inside the material
     env_m_up.set_data(x_mat, np.abs(P_m))
     env_m_dn.set_data(x_mat, -np.abs(P_m))
     #Update the envelope in the airspace ring
